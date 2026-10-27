@@ -5,6 +5,14 @@
   --amber-dim: #a87400;
   --error: #ff5f3a;
   --border: #3a2c12;
+  --gutter: #6b4a00;
+  --active-line: #1a140a;
+  --selection: #4a3500;
+  --code-keyword: #ffd27a;
+  --code-string: #e0c080;
+  --code-number: #ffc94d;
+  --code-comment: #7a5a1a;
+  --code-function: #ffe0a0;
   --font: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 }
 
