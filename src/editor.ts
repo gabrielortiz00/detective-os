@@ -4,8 +4,10 @@ import { HighlightStyle, syntaxHighlighting } from "@codemirror/language";
 import { tags } from "@lezer/highlight";
 
 const starterCode = `# Welcome to Detective OS.
-for name in ["Ada", "Grace", "Linus"]:
-    print("Suspect:", name)
+case.files()
+
+for record in records:
+    print(record)
 `;
 
 const amberTheme = EditorView.theme(

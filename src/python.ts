@@ -1,4 +1,4 @@
-import type { FromWorker, ToWorker } from "./python-messages";
+import type { AnswerKey, FromWorker, ToWorker } from "./python-messages";
 import { startRunTimer } from "./run-timer";
 
 export const RUN_TIMEOUT_MS = 5000;
@@ -11,11 +11,14 @@ export type RunResult = "ok" | "error" | "timeout" | "killed";
 export interface PythonEvents {
   onReady(): void;
   onBootFailed(message: string): void;
+  onCaseLoaded(answers: AnswerKey): void;
+  onCaseFailed(message: string): void;
   onStdout(text: string): void;
   onStderr(text: string): void;
 }
 
 export interface Python {
+  loadCase(source: string, seed: number): void;
   run(code: string): Promise<RunResult>;
 }
 
@@ -26,6 +29,8 @@ export function createPython(events: PythonEvents): Python {
   let interruptBuffer: Uint8Array | undefined;
   let finishRun: ((result: RunResult) => void) | undefined;
   let interrupted = false;
+  // Remembered so a rebooted worker gets the same case and seed back.
+  let currentCase: { source: string; seed: number } | undefined;
 
   function send(message: ToWorker) {
     worker.postMessage(message);
@@ -36,6 +41,7 @@ export function createPython(events: PythonEvents): Python {
     worker.onmessage = (event: MessageEvent<FromWorker>) => handle(event.data);
     interruptBuffer = canInterrupt ? new Uint8Array(new SharedArrayBuffer(1)) : undefined;
     send({ type: "boot", interruptBuffer });
+    if (currentCase) send({ type: "load-case", ...currentCase });
   }
 
   function finish(result: RunResult) {
@@ -58,6 +64,12 @@ export function createPython(events: PythonEvents): Python {
       case "boot-failed":
         events.onBootFailed(message.message);
         break;
+      case "case-loaded":
+        events.onCaseLoaded(message.answers);
+        break;
+      case "case-failed":
+        events.onCaseFailed(message.message);
+        break;
       case "stdout":
         events.onStdout(message.text);
         break;
@@ -79,6 +91,10 @@ export function createPython(events: PythonEvents): Python {
   boot();
 
   return {
+    loadCase(source, seed) {
+      currentCase = { source, seed };
+      send({ type: "load-case", source, seed });
+    },
     run(code) {
       interrupted = false;
       if (interruptBuffer) interruptBuffer[0] = 0;
