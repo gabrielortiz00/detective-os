@@ -1,6 +1,6 @@
 import "./style.css";
 import { createEditor } from "./editor";
-import { createPython } from "./python";
+import { createPython, RUN_TIMEOUT_MS } from "./python";
 import { createTerminal } from "./terminal";
 
 const editor = createEditor(document.getElementById("editor")!);
@@ -25,6 +25,15 @@ const python = createPython({
 runButton.addEventListener("click", async () => {
   runButton.disabled = true;
   terminal.clear();
-  await python.run(editor.state.doc.toString());
+  const result = await python.run(editor.state.doc.toString());
+  const seconds = RUN_TIMEOUT_MS / 1000;
+  if (result === "timeout") {
+    terminal.error(`Process stopped: took longer than ${seconds} seconds.`);
+  } else if (result === "killed") {
+    terminal.error(`Process killed: took longer than ${seconds} seconds.`);
+    terminal.system("Detective OS rebooting...");
+    // onReady turns Run back on once the new worker has booted.
+    return;
+  }
   runButton.disabled = false;
 });
