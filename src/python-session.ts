@@ -6,6 +6,17 @@ import { cleanTraceback } from "./traceback";
 export function createSession(send: (message: FromWorker) => void) {
   let pyodide: PyodideAPI | undefined;
 
+  // Python hands over whole lines (plus any unfinished line when flushed),
+  // so each chunk splits cleanly into terminal lines.
+  function writer(type: "stdout" | "stderr") {
+    const decoder = new TextDecoder();
+    return (bytes: Uint8Array) => {
+      const text = decoder.decode(bytes, { stream: true }).replace(/\n$/, "");
+      for (const line of text.split("\n")) send({ type, text: line });
+      return bytes.length;
+    };
+  }
+
   async function boot(interruptBuffer?: Uint8Array) {
     try {
       pyodide = await loadPyodide();
@@ -13,8 +24,9 @@ export function createSession(send: (message: FromWorker) => void) {
       send({ type: "boot-failed", message: String(err) });
       return;
     }
-    pyodide.setStdout({ batched: (text) => send({ type: "stdout", text }) });
-    pyodide.setStderr({ batched: (text) => send({ type: "stderr", text }) });
+    // Not "batched": it drops a final line that has no newline, even on flush.
+    pyodide.setStdout({ write: writer("stdout") });
+    pyodide.setStderr({ write: writer("stderr") });
     if (interruptBuffer) pyodide.setInterruptBuffer(interruptBuffer);
     send({ type: "ready" });
   }
