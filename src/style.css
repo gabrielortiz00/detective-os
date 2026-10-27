@@ -1,0 +1,75 @@
+:root {
+  --bg: #0d0b08;
+  --panel: #15110c;
+  --amber: #ffb000;
+  --amber-dim: #a87400;
+  --error: #ff5f3a;
+  --border: #3a2c12;
+  --font: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--amber);
+  font-family: var(--font);
+  font-size: 14px;
+}
+
+.screen {
+  display: grid;
+  grid-template-rows: auto 1fr 35%;
+  height: 100vh;
+}
+
+.titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border);
+  letter-spacing: 0.15em;
+}
+
+.titlebar button {
+  font: inherit;
+  letter-spacing: 0.1em;
+  color: var(--bg);
+  background: var(--amber);
+  border: none;
+  padding: 4px 14px;
+  cursor: pointer;
+}
+
+.titlebar button:hover {
+  background: var(--amber-dim);
+}
+
+/* min-height: 0 lets the grid row shrink so the editor scrolls instead of growing. */
+.editor {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.terminal {
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px 12px;
+  background: var(--panel);
+  border-top: 1px solid var(--border);
+  white-space: pre-wrap;
+}
+
+.terminal .error {
+  color: var(--error);
+}
+
+.terminal .system {
+  color: var(--amber-dim);
+}

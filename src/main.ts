@@ -1,1 +1,1 @@
-console.log("Detective OS");
+import "./style.css";
