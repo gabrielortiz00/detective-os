@@ -59,6 +59,11 @@ body {
   background: var(--amber-dim);
 }
 
+.titlebar button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
 /* min-height: 0 lets the grid row shrink so the editor scrolls instead of growing. */
 .editor {
   min-height: 0;
